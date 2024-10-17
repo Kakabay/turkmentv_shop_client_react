@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import React from 'react';
+import { Link } from 'react-router-dom';
 
 const LotList = () => {
   return (
@@ -18,7 +17,7 @@ const LotList = () => {
           </span>
         </div>
         <div className="flex flex-col w-full">
-          <Link href={`/lot/2342424`} className="flex p-5 w-full bg-fillTableRow">
+          <Link to={`/lot/2342424`} className="flex p-5 w-full bg-fillTableRow">
             <span className="text-base text-textBlack font-semibold block max-w-[270px] w-full">
               Лот №123456789
             </span>

@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '../shared/button';
 import { LotData, Datum } from '../../models/lotData.model';
 import { dateSplitYear, dateSplitDays } from '../../utils/stringFormaters';
