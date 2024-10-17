@@ -5,7 +5,7 @@ import { LotData, Datum } from '../../models/lotData.model';
 import { dateSplitYear, dateSplitDays } from '../../utils/stringFormaters';
 
 interface IProps {
-  params: string;
+  params: string | undefined;
 }
 
 const ShopTable = ({ params }: IProps) => {
@@ -16,18 +16,9 @@ const ShopTable = ({ params }: IProps) => {
   const [lots, setLots] = useState<Datum[]>([]);
   const [err, setErr] = useState<boolean>(false);
   const [dataFilter, setDataFilter] = useState<string>('old');
-  const [smsNumber, setSmsNumber] = useState<string>();
-  const [isFetching, setIsFetching] = useState<boolean>(false); // To prevent redundant fetches
 
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Fetch data when page or filter changes
-  const fetchData = useCallback(async () => {
-    if (isFetching) return; // Prevent duplicate fetches
-
-    setIsFetching(true);
-
+  const fetchData = async () => {
+    // o5j6hs
     try {
       const response = await fetch(
         `https://sms.turkmentv.gov.tm/api/shop/messages-by-code?page=${currentPage}`,
@@ -50,92 +41,28 @@ const ShopTable = ({ params }: IProps) => {
       const data: LotData = await response.json();
       setErr(false);
       setData(data);
-      setSmsNumber(data.data.unique_code);
       setLastPage(data.data.lot_sms_messages.meta.last_page);
       setTotalItems(data.data.lot_sms_messages.meta.total);
-
-      // Efficiently manage lot state updates
-      setLots(
-        (prevLots) =>
-          currentPage === 1
-            ? [...data.data.lot_sms_messages.data] // Replace if first page
-            : [...prevLots, ...data.data.lot_sms_messages.data], // Append otherwise
+      setLots((prevLots) =>
+        currentPage === 1
+          ? [...data.data.lot_sms_messages.data]
+          : [...prevLots, ...data.data.lot_sms_messages.data],
       );
     } catch (error) {
-      console.error(error);
+      console.error((error as any).toString());
+      // Handle errors as needed
       setErr(true);
-    } finally {
-      setIsFetching(false);
     }
-  }, [currentPage, dataFilter, params, isFetching]);
+  };
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, dataFilter, fetchData]);
+  }, [currentPage, dataFilter]);
 
-  // WebSocket connection handling with cleanup
-  // useEffect(() => {
-  //   let reconnectTimeout: NodeJS.Timeout | null = null;
-  //   let pingInterval: NodeJS.Timeout | null = null;
-
-  //   const connectWebSocket = () => {
-  //     if (!smsNumber) return;
-
-  //     const ws = new WebSocket(`wss://sms.turkmentv.gov.tm/ws/quiz?dst=${smsNumber}`);
-  //     setSocket(ws);
-
-  //     ws.onopen = () => {
-  //       console.log('WebSocket is connected');
-  //       setIsConnected(true);
-
-  //       // Ping WebSocket every 25 seconds to keep connection alive
-  //       pingInterval = setInterval(() => {
-  //         if (ws.readyState === WebSocket.OPEN) {
-  //           ws.send(JSON.stringify({ type: 'ping' }));
-  //         }
-  //       }, 25000);
-  //     };
-
-  //     ws.onmessage = (event) => {
-  //       try {
-  //         console.log('Message received from WebSocket:', event.data);
-  //         const message = JSON.parse(event.data);
-  //         // Handle received message if needed
-  //       } catch (error) {
-  //         console.error('Error processing message:', error);
-  //       }
-  //     };
-
-  //     ws.onerror = (error) => {
-  //       console.error('WebSocket error:', error);
-  //     };
-
-  //     ws.onclose = () => {
-  //       console.log('WebSocket closed, attempting to reconnect...');
-  //       setIsConnected(false);
-  //       if (pingInterval) clearInterval(pingInterval);
-
-  //       // Attempt to reconnect after a delay
-  //       reconnectTimeout = setTimeout(connectWebSocket, 5000);
-  //     };
-
-  //     return () => {
-  //       if (ws) ws.close();
-  //       if (pingInterval) clearInterval(pingInterval);
-  //       if (reconnectTimeout) clearTimeout(reconnectTimeout);
-  //     };
-  //   };
-
-  //   const cleanup = connectWebSocket();
-
-  //   return () => cleanup && cleanup();
-  // }, [smsNumber]);
-
-  // Filter handler with memoization to prevent re-creation
-  const filterClickHandler = useCallback((dataType: string) => {
+  const filterClickHandler = (dataType: string) => {
     setDataFilter(dataType);
     setCurrentPage(1);
-  }, []);
+  };
 
   return data?.data && !err ? (
     <div className="flex items-center flex-col gap-[40px] ">

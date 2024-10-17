@@ -9,7 +9,7 @@ const LotNumber = () => {
   return (
     <main className="my-[100px]">
       <Container>
-        <LotProvider>{lot_number && <ShopTable params={lot_number} />}</LotProvider>
+        <LotProvider>{<ShopTable params={lot_number} />}</LotProvider>
       </Container>
     </main>
   );
